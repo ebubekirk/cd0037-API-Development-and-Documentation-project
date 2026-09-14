@@ -1,10 +1,33 @@
+import os
+from pathlib import Path
+
 from sqlalchemy import Column, String, Integer
 from flask_sqlalchemy import SQLAlchemy
-database_name = 'trivia'
-database_user = 'postgres'
-database_password = 'password'
-database_host = 'localhost:5432'
-database_path = f'postgresql://{database_user}:{database_password}@{database_host}/{database_name}'
+
+
+def _load_env_file():
+    env_path = Path(__file__).resolve().parent / '.env'
+    if not env_path.exists():
+        return
+
+    for line in env_path.read_text(encoding='utf-8').splitlines():
+        line = line.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+
+        key, value = [part.strip() for part in line.split('=', 1)]
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+_load_env_file()
+
+database_name = os.getenv('DB_NAME', 'trivia')
+database_user = os.getenv('DB_USER', 'postgres')
+database_password = os.getenv('DB_PASSWORD', 'password')
+database_host = os.getenv('DB_HOST', 'localhost')
+database_port = os.getenv('DB_PORT', '5432')
+database_path = f'postgresql://{database_user}:{database_password}@{database_host}:{database_port}/{database_name}'
 
 db = SQLAlchemy()
 
